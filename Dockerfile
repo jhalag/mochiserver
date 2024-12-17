@@ -1,7 +1,7 @@
-FROM golang:1.21.0-alpine3.18 AS builder
+FROM golang:1.23-bookworm AS builder
 
-RUN apk update
-RUN apk add git
+RUN apt-get update
+RUN apt-get install git
 
 WORKDIR /app
 
@@ -11,12 +11,15 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o /app/mochi ./cmd/docker
+RUN CGO_ENABLED=0 go build -o /app/mochi ./cmd/docker
 
-FROM alpine
+# FROM redhat/ubi9
+FROM busybox:stable-glibc
 
 WORKDIR /
 COPY --from=builder /app/mochi .
+RUN mkdir /data
+HEALTHCHECK CMD /bin/wget -f http://localhost:1880/healthcheck || exit 1
 
-ENTRYPOINT [ "/mochi" ]
-CMD ["/cmd/docker", "--config", "config.yaml"]
+
+ENTRYPOINT [ "/mochi", "--config", "data/config.yaml" ]
