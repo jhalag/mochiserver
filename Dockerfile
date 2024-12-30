@@ -19,7 +19,7 @@ FROM busybox:stable-glibc
 WORKDIR /
 COPY --from=builder /app/mochi .
 RUN mkdir /data
-HEALTHCHECK CMD /bin/wget http://localhost:1880/healthcheck || exit 1
+HEALTHCHECK CMD /bin/wget --spider http://localhost:1880/healthcheck || exit 1
 
 
 ENTRYPOINT [ "/mochi", "--config", "data/config.yaml" ]
